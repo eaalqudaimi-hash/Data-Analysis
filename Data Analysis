@@ -1,1 +1,41 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from datetime import datetime
+import numpy as np
 
+# -------- 1. إنشاء بيانات وهمية -------- #
+np.random.seed(42)
+num_records = 100
+dates = pd.date_range(start="2023-01-01", periods=num_records, freq='7D')
+amounts = np.random.randint(50, 1000, size=num_records)
+cities = np.random.choice(['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina'], size=num_records)
+
+df = pd.DataFrame({
+    'donation_date': dates,
+    'amount': amounts,
+    'city': cities
+})
+
+# حفظ البيانات في ملف CSV
+df.to_csv("donations_data.csv", index=False)
+
+# -------- 2. التحليل -------- #
+print("Analysis run at:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+# التأكد من تنسيق التاريخ
+df['donation_date'] = pd.to_datetime(df['donation_date'])
+
+# استخراج الشهر من التاريخ
+df['month'] = df['donation_date'].dt.to_period('M')
+
+# مجموع التبرعات لكل شهر
+monthly_donations = df.groupby('month')['amount'].sum()
+
+# -------- 3. الرسم البياني -------- #
+plt.figure(figsize=(10, 5))
+monthly_donations.plot(kind='bar', color='skyblue', title='Monthly Donations')
+plt.xlabel("Month")
+plt.ylabel("Total Donation Amount")
+plt.tight_layout()
+plt.savefig("monthly_donations.png")
+plt.show()
