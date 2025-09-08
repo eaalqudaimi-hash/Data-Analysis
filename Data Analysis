@@ -3,39 +3,37 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
 
-# -------- 1. إنشاء بيانات وهمية -------- #
+# -------- إنشاء بيانات وهمية لمنظمة غير ربحية مع 5000 سجل -------- #
 np.random.seed(42)
-num_records = 100
-dates = pd.date_range(start="2023-01-01", periods=num_records, freq='7D')
-amounts = np.random.randint(50, 1000, size=num_records)
+num_records = 5000  # عدد كبير من السجلات
+dates = pd.date_range(start="2022-01-01", periods=num_records, freq='D')  # يوميًا
+assistance_types = np.random.choice(['Medical', 'Food', 'Education', 'Shelter'], size=num_records)
+beneficiaries = np.random.randint(5, 500, size=num_records)
 cities = np.random.choice(['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina'], size=num_records)
 
 df = pd.DataFrame({
-    'donation_date': dates,
-    'amount': amounts,
+    'campaign_date': dates,
+    'assistance_type': assistance_types,
+    'beneficiaries': beneficiaries,
     'city': cities
 })
 
 # حفظ البيانات في ملف CSV
-df.to_csv("donations_data.csv", index=False)
+df.to_csv("ngo_campaign_data_5000.csv", index=False)
 
-# -------- 2. التحليل -------- #
+# -------- تحليل البيانات -------- #
 print("Analysis run at:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-# التأكد من تنسيق التاريخ
-df['donation_date'] = pd.to_datetime(df['donation_date'])
+df['campaign_date'] = pd.to_datetime(df['campaign_date'])
+df['month'] = df['campaign_date'].dt.to_period('M')
 
-# استخراج الشهر من التاريخ
-df['month'] = df['donation_date'].dt.to_period('M')
+# إجمالي المستفيدين لكل نوع مساعدة شهريًا
+monthly_beneficiaries = df.groupby(['month', 'assistance_type'])['beneficiaries'].sum().unstack()
 
-# مجموع التبرعات لكل شهر
-monthly_donations = df.groupby('month')['amount'].sum()
-
-# -------- 3. الرسم البياني -------- #
-plt.figure(figsize=(10, 5))
-monthly_donations.plot(kind='bar', color='skyblue', title='Monthly Donations')
-plt.xlabel("Month")
-plt.ylabel("Total Donation Amount")
+# رسم بياني
+monthly_beneficiaries.plot(kind='bar', stacked=True, figsize=(16,8), title='Monthly Beneficiaries by Assistance Type')
+plt.xlabel('Month')
+plt.ylabel('Number of Beneficiaries')
 plt.tight_layout()
-plt.savefig("monthly_donations.png")
+plt.savefig('monthly_beneficiaries_5000.png')
 plt.show()
